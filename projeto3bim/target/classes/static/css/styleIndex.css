@@ -661,3 +661,14 @@ body {
 		min-width: 420px;
 	}
 }
+
+.status-link {
+    text-decoration: none;
+    color: inherit;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.status-link:hover {
+    text-decoration: underline;
+}

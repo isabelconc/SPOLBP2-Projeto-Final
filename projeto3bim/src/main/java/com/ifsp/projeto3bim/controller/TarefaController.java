@@ -21,24 +21,27 @@ public class TarefaController {
             return "redirect:/login";
         }
 
+        long completas = tarefas.stream().filter(t -> "Completed".equalsIgnoreCase(t.getStatus())).count();
+        long pendentes = tarefas.stream().filter(t -> "Pending".equalsIgnoreCase(t.getStatus())).count();
+        long processando = tarefas.stream().filter(t -> "Processing".equalsIgnoreCase(t.getStatus())).count();
+
         model.addAttribute("tarefas", tarefas);
+        model.addAttribute("completas", completas);
+        model.addAttribute("pendentes", pendentes);
+        model.addAttribute("processando", processando);
+
         return "index";
     }
 
     @PostMapping("/add")
     public String adicionar(@RequestParam("texto") String texto,
                             @RequestParam("data") String data,
-                            @RequestParam(value = "grupo", required = false) String grupo,
                             HttpSession session) {
         if (session.getAttribute("usuarioLogado") == null) {
             return "redirect:/login";
         }
 
-        if (grupo == null) {
-            grupo = "";
-        }
-
-        tarefas.add(new Tarefa(texto, data, "Pending", grupo));
+        tarefas.add(new Tarefa(texto, data, "Pending"));
         return "redirect:/tarefas";
     }
 
@@ -53,6 +56,65 @@ public class TarefaController {
         }
         return "redirect:/tarefas";
     }
+
+    @GetMapping("/processing")
+    public String listarProcessando(Model model, HttpSession session) {
+        if (session.getAttribute("usuarioLogado") == null) {
+            return "redirect:/login";
+        }
+        List<Tarefa> processando = tarefas.stream()
+                .filter(t -> "Processing".equalsIgnoreCase(t.getStatus()))
+                .toList();
+        model.addAttribute("tarefas", processando);
+        model.addAttribute("completas", tarefas.stream().filter(t -> "Completed".equalsIgnoreCase(t.getStatus())).count());
+        model.addAttribute("pendentes", tarefas.stream().filter(t -> "Pending".equalsIgnoreCase(t.getStatus())).count());
+        model.addAttribute("processando", processando.size());
+        return "tarefas-status";
+    }
+
+    @GetMapping("/pending")
+    public String listarPendentes(Model model, HttpSession session) {
+        if (session.getAttribute("usuarioLogado") == null) {
+            return "redirect:/login";
+        }
+        List<Tarefa> pendentes = tarefas.stream()
+                .filter(t -> "Pending".equalsIgnoreCase(t.getStatus()))
+                .toList();
+        model.addAttribute("tarefas", pendentes);
+        model.addAttribute("completas", tarefas.stream().filter(t -> "Completed".equalsIgnoreCase(t.getStatus())).count());
+        model.addAttribute("pendentes", pendentes.size());
+        model.addAttribute("processando", tarefas.stream().filter(t -> "Processing".equalsIgnoreCase(t.getStatus())).count());
+        return "tarefas-status";
+    }
+
+    @GetMapping("/completed")
+    public String listarCompletas(Model model, HttpSession session) {
+        if (session.getAttribute("usuarioLogado") == null) {
+            return "redirect:/login";
+        }
+        List<Tarefa> completas = tarefas.stream()
+                .filter(t -> "Completed".equalsIgnoreCase(t.getStatus()))
+                .toList();
+        model.addAttribute("tarefas", completas);
+        model.addAttribute("completas", completas.size());
+        model.addAttribute("pendentes", tarefas.stream().filter(t -> "Pending".equalsIgnoreCase(t.getStatus())).count());
+        model.addAttribute("processando", tarefas.stream().filter(t -> "Processing".equalsIgnoreCase(t.getStatus())).count());
+        return "tarefas-status";
+    }
+
+
+    // Processing btn
+    @PostMapping("/processing/{id}")
+    public String marcarProcessando(@PathVariable int id, HttpSession session) {
+        if (session.getAttribute("usuarioLogado") == null) {
+            return "redirect:/login";
+        }
+        if (id >= 0 && id < tarefas.size()) {
+            tarefas.get(id).setStatus("Processing");
+        }
+        return "redirect:/tarefas";
+    }
+
 
     @PostMapping("/delete/{id}")
     public String deletar(@PathVariable int id, HttpSession session) {
