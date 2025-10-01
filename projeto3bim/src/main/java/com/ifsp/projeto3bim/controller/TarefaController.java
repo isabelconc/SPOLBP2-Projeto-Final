@@ -18,22 +18,27 @@ public class TarefaController {
     @GetMapping
     public String listar(Model model, HttpSession session) {
         if (session.getAttribute("usuarioLogado") == null) {
-            return "redirect:/login"; 
+            return "redirect:/login";
         }
 
         model.addAttribute("tarefas", tarefas);
-        return "index"; 
+        return "index";
     }
 
     @PostMapping("/add")
     public String adicionar(@RequestParam("texto") String texto,
                             @RequestParam("data") String data,
+                            @RequestParam(value = "grupo", required = false) String grupo,
                             HttpSession session) {
         if (session.getAttribute("usuarioLogado") == null) {
             return "redirect:/login";
         }
 
-        tarefas.add(new Tarefa(texto, data, "Pending"));
+        if (grupo == null) {
+            grupo = "";
+        }
+
+        tarefas.add(new Tarefa(texto, data, "Pending", grupo));
         return "redirect:/tarefas";
     }
 
