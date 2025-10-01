@@ -1,10 +1,10 @@
 package com.ifsp.projeto3bim.controller;
 
 import com.ifsp.projeto3bim.model.Tarefa;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,19 +16,33 @@ public class TarefaController {
     private List<Tarefa> tarefas = new ArrayList<>();
 
     @GetMapping
-    public String listar(Model model) {
+    public String listar(Model model, HttpSession session) {
+        if (session.getAttribute("usuarioLogado") == null) {
+            return "redirect:/login"; 
+        }
+
         model.addAttribute("tarefas", tarefas);
-        return "index";
+        return "index"; 
     }
 
     @PostMapping("/add")
-    public String adicionar(@RequestParam("texto") String texto, @RequestParam("data") String data) {
+    public String adicionar(@RequestParam("texto") String texto,
+                            @RequestParam("data") String data,
+                            HttpSession session) {
+        if (session.getAttribute("usuarioLogado") == null) {
+            return "redirect:/login";
+        }
+
         tarefas.add(new Tarefa(texto, data, "Pending"));
         return "redirect:/tarefas";
     }
 
     @PostMapping("/toggle/{id}")
-    public String toggle(@PathVariable int id) {
+    public String toggle(@PathVariable int id, HttpSession session) {
+        if (session.getAttribute("usuarioLogado") == null) {
+            return "redirect:/login";
+        }
+
         if (id >= 0 && id < tarefas.size()) {
             tarefas.get(id).toggleStatus();
         }
@@ -36,7 +50,11 @@ public class TarefaController {
     }
 
     @PostMapping("/delete/{id}")
-    public String deletar(@PathVariable int id) {
+    public String deletar(@PathVariable int id, HttpSession session) {
+        if (session.getAttribute("usuarioLogado") == null) {
+            return "redirect:/login";
+        }
+
         if (id >= 0 && id < tarefas.size()) {
             tarefas.remove(id);
         }
